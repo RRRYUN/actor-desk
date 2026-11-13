@@ -1517,7 +1517,7 @@ async function start(){
   document.getElementById("app").replaceChildren(el("div",{class:"wrap"},el("p",{class:"lead",style:"padding:40px 4px",text:"불러오는 중이에요…"})));
   try{await load()}
   catch(e){lockView(e.status===401||e.status===403||e.status===404?"열쇠가 맞지 않거나 기간이 끝났어요. 매니저에게 새 링크를 받아 주세요.":"불러오지 못했어요. 인터넷 연결을 확인하고 다시 열어 주세요.");return}
-  isOwner=ROLE==="manager";art={};readOnly=false;booted=true;
+  isOwner=ROLE==="manager"&&LINKROLE!=="actor";art={};readOnly=false;booted=true; // 배우님 링크로 열면 어느 기기든 배우 화면만
   if(isOwner){let m=null;try{m=localStorage.getItem("mgr-mode")}catch(_){}mode=LINKROLE==="actor"?"actor":(m||"manager")}else mode="actor";
   document.title="나만의 매니저";
   ui.enter=true;render();
