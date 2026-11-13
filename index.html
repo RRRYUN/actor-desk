@@ -5,7 +5,24 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
 <meta name="referrer" content="no-referrer">
-<title>매니저</title>
+<title>오디션 수첩</title>
+<meta name="description" content="오디션 공고와 일정, 지원 현황을 한곳에서">
+<meta name="theme-color" content="#F2F4F7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#101317" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-title" content="오디션 수첩">
+<meta name="application-name" content="오디션 수첩">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="오디션 수첩">
+<meta property="og:title" content="오디션 수첩">
+<meta property="og:description" content="오디션 공고와 일정, 지원 현황을 한곳에서">
+<meta property="og:image" content="https://rrryun.github.io/actor-desk/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap">
@@ -59,6 +76,10 @@ button,input,select,textarea{font:inherit;color:inherit}
 
 /* 머리 */
 .toprow{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brandrow{display:flex;align-items:center;gap:12px;min-width:0}
+.logo{width:44px;height:44px;border-radius:12px;flex:none;display:block}
+.logo.big{width:72px;height:72px;border-radius:19px}
+.lockhead{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:24px 4px 4px}
 .brand{display:flex;flex-direction:column;line-height:1.35}
 .brand strong{font-size:20px;font-weight:780;letter-spacing:-.01em}
 .brand span{font-size:15px;color:var(--sub)}
@@ -801,7 +822,7 @@ function badge(){
 function goTab(k){if(ui.tab!==k){ui.enter=true;ui.hop=k}ui.tab=k;if(k!=="cal")ui.sel=null;if(k!=="cal"){ui.availMode=false;ui.availDraft=null}render();scrollTo(0,0)}
 function header(){
   const t=dayParts(today());
-  const row=el("div",{class:"toprow"},el("div",{class:"brand"},el("strong",{text:mode==="manager"?S.profile.name+" 매니저":S.profile.name+" 배우님"}),el("span",{text:t.m+"월 "+t.d+"일 "+t.w+"요일"})));
+  const row=el("div",{class:"toprow"},el("div",{class:"brandrow"},el("img",{class:"logo",src:"icon.svg",alt:"",width:"44",height:"44"}),el("div",{class:"brand"},el("strong",{text:mode==="manager"?S.profile.name+" 매니저":S.profile.name+" 배우님"}),el("span",{text:t.m+"월 "+t.d+"일 "+t.w+"요일"}))));
   if(isOwner) row.append(el("button",{type:"button",class:"swap",text:mode==="manager"?"배우 화면으로 보기":"매니저 화면으로",onclick:()=>{mode=mode==="manager"?"actor":"manager";try{localStorage.setItem("mgr-mode",mode)}catch(_){};ui.open=null;render();scrollTo(0,0)}}));
   const h=el("header",{class:"top"},row);
   if(mode==="manager"&&booted&&readOnly) h.append(el("p",{class:"warn",text:"지금 이 화면은 보기 전용이라 바꾼 내용이 저장되지 않아요."}));
@@ -1466,8 +1487,8 @@ function lockView(msg){
     el("button",{class:"btn primary",type:"submit",text:"열기"}));
   f.addEventListener("submit",e=>{e.preventDefault();const k=inp.value.trim();if(!k)return;
     KEY=k;ROLE="manager";try{localStorage.setItem("desk-key",k);localStorage.setItem("desk-role","manager")}catch(_){};start()});
-  document.title="매니저";
-  document.getElementById("app").replaceChildren(el("div",{class:"wrap"},el("div",{class:"hello"},el("h1",{text:"매니저"})),f));
+  document.title="오디션 수첩";
+  document.getElementById("app").replaceChildren(el("div",{class:"wrap"},el("div",{class:"lockhead"},el("img",{class:"logo big",src:"icon.svg",alt:"",width:"72",height:"72"}),el("h1",{text:"오디션 수첩"}),el("p",{class:"lead",text:"공고 · 일정 · 지원 현황을 한곳에서"})),f));
 }
 async function start(){
   if(!KEY){lockView();return}
@@ -1476,7 +1497,7 @@ async function start(){
   catch(e){lockView(e.status===401||e.status===403||e.status===404?"열쇠가 맞지 않거나 기간이 끝났어요. 매니저에게 새 링크를 받아 주세요.":"불러오지 못했어요. 인터넷 연결을 확인하고 다시 열어 주세요.");return}
   isOwner=ROLE==="manager";art={};readOnly=false;booted=true;
   if(isOwner){let m=null;try{m=localStorage.getItem("mgr-mode")}catch(_){}mode=m||"manager"}else mode="actor";
-  document.title=S.profile.name+(mode==="manager"?" 매니저":" 배우님");
+  document.title=S.profile.name+(mode==="manager"?" 매니저":" 배우님")+" · 오디션 수첩";
   ui.enter=true;render();
 }
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")refresh()});

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <clipPath id="band"><rect x="112" y="226" width="288" height="50" rx="10"/></clipPath>
+    <clipPath id="arm"><rect x="112" y="160" width="288" height="50" rx="16"/></clipPath>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="#3182F6"/>
+  <!-- 슬레이트 몸통 -->
+  <rect x="112" y="226" width="288" height="186" rx="30" fill="#FFFFFF"/>
+  <g clip-path="url(#band)" fill="#3182F6">
+    <polygon points="150,226 186,226 160,276 124,276"/>
+    <polygon points="222,226 258,226 232,276 196,276"/>
+    <polygon points="294,226 330,226 304,276 268,276"/>
+    <polygon points="366,226 402,226 376,276 340,276"/>
+  </g>
+  <!-- 위로 살짝 열린 딱딱이 -->
+  <g transform="rotate(-13 118 216)">
+    <rect x="112" y="160" width="288" height="50" rx="16" fill="#FFFFFF"/>
+    <g clip-path="url(#arm)" fill="#3182F6">
+      <polygon points="150,160 186,160 160,210 124,210"/>
+      <polygon points="222,160 258,160 232,210 196,210"/>
+      <polygon points="294,160 330,160 304,210 268,210"/>
+      <polygon points="366,160 402,160 376,210 340,210"/>
+    </g>
+  </g>
+  <circle cx="126" cy="216" r="13" fill="#FFFFFF"/>
+  <!-- 수첩 줄 -->
+  <rect x="152" y="312" width="164" height="20" rx="10" fill="#CFE2FF"/>
+  <rect x="152" y="352" width="104" height="20" rx="10" fill="#CFE2FF"/>
+</svg>
