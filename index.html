@@ -435,7 +435,7 @@ const KORDER=["event","due","result","audition","shoot","etc"];
 const EV_KIND=["오디션","촬영","미팅","기타"];
 /* 배우님께 받는 정보. tok = 메일 양식의 ［ ］ 안 이름 */
 const INFO=[
-  {k:"home",tok:"거주지",label:"사는 곳",hint:"구·동까지만 적어 주세요. 예: 서울 양천구 목동",type:"text"},
+  {k:"home",tok:"거주지",label:"사는 곳",hint:"구·동까지만 적어 주세요. 예: 서울 마포구 망원동",type:"text"},
   {k:"travel",tok:"지방 촬영",label:"지방 촬영",hint:"서울·경기 밖 촬영에 갈 수 있으세요?",type:"yn"},
   {k:"top",tok:"상의",label:"상의 사이즈",hint:"예: 55, 66, M",type:"text"},
   {k:"bottom",tok:"하의",label:"하의 사이즈",hint:"예: 26, 66",type:"text"},
@@ -788,9 +788,9 @@ function jobCard(j){
   const d=dueInfo(j);
   const top=el("span",{class:"jtop"});
   if(isNew(j)) top.append(el("span",{class:"tag new",text:"새 공고"}));
-  top.append(el("span",{class:"due"+(d.urgent?" urgent":""),text:d.text}),el("span",{class:"tag "+j.fit,text:FIT[j.fit]||""}));
+  top.append(j.status!=="new"?null:el("span",{class:"due"+(d.urgent?" urgent":""),text:d.text}),el("span",{class:"tag "+j.fit,text:FIT[j.fit]||""}));
   const foot=el("span",{class:"jfoot"});
-  if(j.status!=="new") foot.append(el("span",{class:"jst st-"+j.status,text:STATUS[j.status]}));
+  if(j.status!=="new") foot.append(el("span",{class:"jst st-"+j.status,text:mode==="actor"?({applied:"매니저가 지원했어요",callback:"연락이 왔어요",cast:"출연이 정해졌어요",no:"이번엔 안 됐어요"}[j.status]||STATUS[j.status]):STATUS[j.status]}));
   else if(j.pick==="want") foot.append(el("span",{class:"jst want",text:mode==="actor"?"하고 싶다고 하셨어요":"배우님: 하고 싶어요"}));
   else if(j.pick==="pass") foot.append(el("span",{class:"jst",text:mode==="actor"?"안 하기로 하셨어요":"배우님: 안 할래요"}));
   else if(mode==="manager") foot.append(el("span",{class:"jst",text:"배우님 답 기다리는 중"}));
@@ -990,7 +990,9 @@ function actorJobs(){
   const soon=soonCard(); if(soon) v.append(soon);
   v.append(fmCta());
   v.append(sec("하고 싶은지 골라 주세요","마감이 가까운 것부터 보여드려요.",toPick.length?cardList(toPick):empty("지금은 골라 주실 공고가 없어요.")));
-  if(picked.length) v.append(sec("이미 고른 공고","눌러서 다시 보고 바꿀 수 있어요.",cardList(picked)));
+  const wants=S.jobs.filter(j=>j.pick==="want"&&(j.status!=="new"||isOpen(j))).sort(byDue),passes=picked.filter(j=>j.pick==="pass");
+  if(wants.length) v.append(sec("하고 싶다고 하신 곳","매니저가 지원하면 '매니저가 지원했어요'로 바뀌어요. 연락 소식은 '지원 현황' 탭에서 볼 수 있어요.",cardList(wants)));
+  if(passes.length) v.append(pastFold(passes,"안 하기로 한 공고"));
   if(past.length) v.append(pastFold(past,"마감된 공고"));
   return v;
 }
@@ -1057,7 +1059,8 @@ function managerJobs(){
   const passed=open.filter(j=>j.pick==="pass"),past=S.jobs.filter(j=>j.status==="new"&&!isOpen(j));
   v.append(el("div",{class:"hello"},el("h1",{text:"지원 관리"}),el("p",{class:"lead",text:"공고를 누르면 요약과 지원 방법이 열려요. 배우님이 '하고 싶어요'를 누른 곳부터 지원해 주세요."})));
   v.append(sec("다음 할 일",null,todoCard()));
-  v.append(sec("지원할 곳","배우님이 하고 싶다고 한 곳이에요.",want.length?cardList(want):empty("아직 배우님이 고른 곳이 없어요.")));
+  const applied=S.jobs.filter(j=>j.status!=="new");
+  v.append(sec("지원할 곳","배우님이 하고 싶다고 했지만 아직 지원 전인 곳이에요.",want.length?cardList(want):(applied.length?el("div",{class:"card"},el("p",{class:"lead",text:"지금 지원할 곳은 없어요. 지원 완료로 표시한 "+applied.length+"곳("+applied.map(j=>j.title.replace(/ · .*/,"")).join(", ")+")은 '진행' 탭에 있어요."}),el("button",{class:"btn ghost",type:"button",text:"진행 탭 보기",onclick:()=>goTab("prog")})):empty("아직 배우님이 고른 곳이 없어요."))));
   v.append(sec("배우님 답 기다리는 곳","배우 화면에서 고르면 위로 올라가요. 급하면 눌러서 대신 고를 수 있어요.",wait.length?cardList(wait):empty("기다리는 공고가 없어요.")));
   if(passed.length) v.append(pastFold(passed,"배우님이 넘긴 공고"));
   if(past.length) v.append(pastFold(past,"마감된 공고"));
