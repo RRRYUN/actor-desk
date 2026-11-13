@@ -725,35 +725,69 @@ function gh(method,body){
     headers:{"Authorization":"Bearer "+KEY,"Accept":"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28"},
     body:body?JSON.stringify(body):undefined});
 }
-async function load(){
+async function fetchData(){
   const r=await gh("GET");
   if(!r.ok){const e=new Error("load");e.status=r.status;throw e}
-  const j=await r.json();sha=j.sha;S=JSON.parse(b64dec(j.content));normalize();
+  const j=await r.json();return {sha:j.sha,data:JSON.parse(b64dec(j.content))};
 }
-let saveChain=Promise.resolve();
+let BASE=null,dirty=false,flushing=null,lastMsg="";
+async function load(){const f=await fetchData();sha=f.sha;S=f.data;normalize();BASE=JSON.parse(JSON.stringify(S))}
+/* 두 기기가 동시에 고쳐도 잃지 않게: 마지막으로 맞춘 내용(BASE)을 기준으로 내 것과 상대 것을 칸마다 합친다 */
+const isObj=x=>x!==null&&typeof x==="object"&&!Array.isArray(x),same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+function idKey(...arrs){for(const a of arrs){if(Array.isArray(a))for(const x of a){if(isObj(x)){if("id" in x)return "id";if("k" in x)return "k"}}}return null}
+function merge3(b,m,t){
+  if(same(m,b))return t; if(same(t,b)||same(m,t))return m;
+  if(isObj(m)&&isObj(t)){const o={},bb=isObj(b)?b:{};
+    new Set([...Object.keys(bb),...Object.keys(t),...Object.keys(m)]).forEach(k=>{const v=merge3(bb[k],m[k],t[k]);if(v!==undefined)o[k]=v});return o}
+  if(Array.isArray(m)&&Array.isArray(t)){const key=idKey(m,t,b);if(!key)return m;
+    const bm=new Map((Array.isArray(b)?b:[]).map(x=>[x[key],x])),mm=new Map(m.map(x=>[x[key],x])),tm=new Map(t.map(x=>[x[key],x]));
+    const order=[...t.map(x=>x[key]),...m.map(x=>x[key]).filter(k=>!tm.has(k))],out=[];
+    order.forEach(k=>{const bx=bm.get(k),mx=mm.get(k),tx=tm.get(k);
+      if(mx===undefined&&bx!==undefined){if(tx!==undefined&&!same(tx,bx))out.push(tx);return}
+      if(tx===undefined&&bx!==undefined)return;
+      out.push(merge3(bx,mx,tx))});
+    return out}
+  return m;
+}
 function save(msg){
-  clearTimeout(qTimer);
+  clearTimeout(qTimer);ui._q=false;
   S.updated=new Date().toISOString();
   render();
   if(!KEY||readOnly){toast("이 화면에서는 저장되지 않아요",3000);return Promise.resolve(false)}
-  const text=JSON.stringify(S,null,1);busy++;
-  saveChain=saveChain.then(()=>putData(text,msg)).finally(()=>{busy--});
-  return saveChain;
+  dirty=true;lastMsg=msg||"";toast(msg||"저장하는 중이에요…");
+  if(!flushing) flushing=flush().finally(()=>{flushing=null});
+  return flushing;
 }
-async function putData(text,msg){
-  toast(msg||"저장하는 중이에요…");
-  try{
-    const r=await gh("PUT",{message:"페이지에서 저장: "+String(msg||"고침").replace(/…$/,""),content:b64enc(text),sha});
-    if(r.ok){const j=await r.json();sha=j.content.sha;toast("저장됐어요",1500);return true}
-    if(r.status===409||r.status===422){await load();render();toast("다른 기기에서 바뀐 내용을 불러왔어요. 한 번 더 해 주세요",3800);return false}
-    if(r.status===401||r.status===403||r.status===404){readOnly=true;render();toast("이 열쇠로는 저장할 수 없어요",3500);return false}
-    toast("저장하지 못했어요. 잠시 뒤에 다시 해 주세요",3500);return false;
-  }catch(_){toast("인터넷 연결을 확인해 주세요",3500);return false}
+async function flush(){
+  while(dirty){
+    dirty=false;let done=false;
+    for(let tries=0;tries<5&&!done;tries++){
+      const body=JSON.stringify(S,null,1);let r;
+      try{r=await gh("PUT",{message:"페이지에서 저장: "+String(lastMsg||"고침").replace(/…$/,""),content:b64enc(body),sha})}
+      catch(_){dirty=true;toast("인터넷 연결이 끊겼어요. 연결되면 아무 버튼이나 다시 눌러 주세요",4500);return false}
+      if(r.ok){const j=await r.json();sha=j.content.sha;BASE=JSON.parse(body);done=true;break}
+      if(r.status===409||r.status===422){
+        try{const f=await fetchData();S=merge3(BASE,S,f.data);normalize();BASE=f.data;sha=f.sha;render()}catch(_){}
+        continue;
+      }
+      if(r.status===401||r.status===403||r.status===404){readOnly=true;render();toast("이 열쇠로는 저장할 수 없어요. 매니저에게 새 링크를 받아 주세요",4500);return false}
+      await new Promise(res=>setTimeout(res,800));
+    }
+    if(!done){dirty=true;toast("저장하지 못했어요. 잠시 뒤에 아무 버튼이나 다시 눌러 주세요",4500);return false}
+  }
+  toast("저장됐어요",1500);return true;
 }
+function typing(){const a=document.activeElement;return !!a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)}
 async function refresh(){
-  if(busy||qTimer&&ui._q||!KEY) return;
-  try{const old=sha;await load();if(sha!==old)render()}catch(_){}
+  if(!KEY||!S||flushing||dirty||ui._q||typing()||ui.availMode||ui.evForm||ui.vEdit!=null) return;
+  try{
+    const f=await fetchData();
+    if(f.sha===sha||flushing||dirty||ui._q||typing()) return;
+    S=merge3(BASE,S,f.data);normalize();BASE=f.data;sha=f.sha;render();
+  }catch(_){}
 }
+setInterval(()=>{if(document.visibilityState==="visible")refresh()},20000);
+window.addEventListener("beforeunload",e=>{if(dirty||flushing){e.preventDefault();e.returnValue=""}});
 
 /* ---------- 머리·탭 ---------- */
 function tabsFor(){return mode==="manager"
