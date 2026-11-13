@@ -78,6 +78,8 @@ button,input,select,textarea{font:inherit;color:inherit}
 .toprow{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .brandrow{display:flex;align-items:center;gap:12px;min-width:0}
 .logo{width:44px;height:44px;border-radius:12px;flex:none;display:block}
+.avatar{width:48px;height:48px;border-radius:50%;object-fit:cover;flex:none;display:block;box-shadow:0 0 0 2px var(--card),0 0 0 3px var(--line)}
+.actor .avatar{width:54px;height:54px}
 .logo.big{width:72px;height:72px;border-radius:19px}
 .lockhead{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:24px 4px 4px}
 .brand{display:flex;flex-direction:column;line-height:1.35}
@@ -822,7 +824,7 @@ function badge(){
 function goTab(k){if(ui.tab!==k){ui.enter=true;ui.hop=k}ui.tab=k;if(k!=="cal")ui.sel=null;if(k!=="cal"){ui.availMode=false;ui.availDraft=null}render();scrollTo(0,0)}
 function header(){
   const t=dayParts(today());
-  const row=el("div",{class:"toprow"},el("div",{class:"brandrow"},el("img",{class:"logo",src:"icon.svg",alt:"",width:"44",height:"44"}),el("div",{class:"brand"},el("strong",{text:mode==="manager"?S.profile.name+" 매니저":S.profile.name+" 배우님"}),el("span",{text:t.m+"월 "+t.d+"일 "+t.w+"요일"}))));
+  const row=el("div",{class:"toprow"},el("div",{class:"brandrow"},S.profile.photo?el("img",{class:"avatar",src:S.profile.photo,alt:"",width:"48",height:"48"}):el("img",{class:"logo",src:"icon.svg",alt:"",width:"44",height:"44"}),el("div",{class:"brand"},el("strong",{text:mode==="manager"?S.profile.name+" 매니저":S.profile.name+" 배우님"}),el("span",{text:t.m+"월 "+t.d+"일 "+t.w+"요일"}))));
   if(isOwner) row.append(el("button",{type:"button",class:"swap",text:mode==="manager"?"배우 화면으로 보기":"매니저 화면으로",onclick:()=>{mode=mode==="manager"?"actor":"manager";try{localStorage.setItem("mgr-mode",mode)}catch(_){};ui.open=null;render();scrollTo(0,0)}}));
   const h=el("header",{class:"top"},row);
   if(mode==="manager"&&booted&&readOnly) h.append(el("p",{class:"warn",text:"지금 이 화면은 보기 전용이라 바꾼 내용이 저장되지 않아요."}));
