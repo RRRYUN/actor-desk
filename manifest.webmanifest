@@ -1,6 +1,6 @@
 {
- "name": "오디션 수첩",
- "short_name": "오디션 수첩",
+ "name": "나만의 매니저",
+ "short_name": "나만의 매니저",
  "description": "오디션 공고와 일정, 지원 현황을 한곳에서",
  "start_url": "./",
  "scope": "./",

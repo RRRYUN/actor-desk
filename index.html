@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
 <meta name="referrer" content="no-referrer">
-<title>오디션 수첩</title>
+<title>나만의 매니저</title>
 <meta name="description" content="오디션 공고와 일정, 지원 현황을 한곳에서">
 <meta name="theme-color" content="#F2F4F7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#101317" media="(prefers-color-scheme: dark)">
@@ -13,11 +13,11 @@
 <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="apple-mobile-web-app-title" content="오디션 수첩">
-<meta name="application-name" content="오디션 수첩">
+<meta name="apple-mobile-web-app-title" content="나만의 매니저">
+<meta name="application-name" content="나만의 매니저">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="오디션 수첩">
-<meta property="og:title" content="오디션 수첩">
+<meta property="og:site_name" content="나만의 매니저">
+<meta property="og:title" content="나만의 매니저">
 <meta property="og:description" content="오디션 공고와 일정, 지원 현황을 한곳에서">
 <meta property="og:image" content="https://rrryun.github.io/actor-desk/og.png">
 <meta property="og:image:width" content="1200">
@@ -1487,8 +1487,8 @@ function lockView(msg){
     el("button",{class:"btn primary",type:"submit",text:"열기"}));
   f.addEventListener("submit",e=>{e.preventDefault();const k=inp.value.trim();if(!k)return;
     KEY=k;ROLE="manager";try{localStorage.setItem("desk-key",k);localStorage.setItem("desk-role","manager")}catch(_){};start()});
-  document.title="오디션 수첩";
-  document.getElementById("app").replaceChildren(el("div",{class:"wrap"},el("div",{class:"lockhead"},el("img",{class:"logo big",src:"icon.svg",alt:"",width:"72",height:"72"}),el("h1",{text:"오디션 수첩"}),el("p",{class:"lead",text:"공고 · 일정 · 지원 현황을 한곳에서"})),f));
+  document.title="나만의 매니저";
+  document.getElementById("app").replaceChildren(el("div",{class:"wrap"},el("div",{class:"lockhead"},el("img",{class:"logo big",src:"icon.svg",alt:"",width:"72",height:"72"}),el("h1",{text:"나만의 매니저"}),el("p",{class:"lead",text:"공고 · 일정 · 지원 현황을 한곳에서"})),f));
 }
 async function start(){
   if(!KEY){lockView();return}
@@ -1497,7 +1497,7 @@ async function start(){
   catch(e){lockView(e.status===401||e.status===403||e.status===404?"열쇠가 맞지 않거나 기간이 끝났어요. 매니저에게 새 링크를 받아 주세요.":"불러오지 못했어요. 인터넷 연결을 확인하고 다시 열어 주세요.");return}
   isOwner=ROLE==="manager";art={};readOnly=false;booted=true;
   if(isOwner){let m=null;try{m=localStorage.getItem("mgr-mode")}catch(_){}mode=m||"manager"}else mode="actor";
-  document.title=S.profile.name+(mode==="manager"?" 매니저":" 배우님")+" · 오디션 수첩";
+  document.title="나만의 매니저";
   ui.enter=true;render();
 }
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")refresh()});
