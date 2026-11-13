@@ -299,6 +299,7 @@ button.ag-row{cursor:pointer}
 .ag-main{display:flex;flex-direction:column;min-width:0;line-height:1.45}
 .ag-main strong{font-weight:700}
 .ag-main span{color:var(--sub);font-size:15.5px}
+.ag-main span.loose-when{color:var(--fg);font-weight:650}
 .actor .ag-main span{font-size:17px}
 .ag-row .ic{color:var(--sub)}
 .selday{display:flex;flex-direction:column;gap:6px;scroll-margin-top:96px}
@@ -728,10 +729,11 @@ function itemNote(it){
     if(j.pick==="want") parts.push(mode==="actor"?"하고 싶다고 하셨어요":"배우님이 하고 싶대요");
     else if(!j.pick) parts.push(mode==="actor"?"아직 안 고르셨어요":"배우님 답 기다림");
   }else{
-    if(it.note) parts.push(it.note); else parts.push(KINDS[it.k]);
-    if(it.t&&!(it.note||"").includes(it.t)) parts.push(it.t);
-    if(it.k==="shoot"&&j.status!=="cast") parts.push("뽑히면");
-    if((it.k==="result"||it.k==="audition")&&j.status==="new") parts.push("지원하면");
+    const what=[it.note&&it.note!==KINDS[it.k]&&it.note!=="촬영"?it.note:null,it.t&&!(it.note||"").includes(it.t)?it.t:null].filter(Boolean).join(" ");
+    if(what) parts.push(what);
+    if(it.k==="shoot"&&j.status!=="cast") parts.push(j.status==="new"?"지원해서 뽑히면 이날 촬영해요":"뽑히면 이날 촬영해요");
+    if(it.k==="result"&&j.status==="new") parts.push("지원하면 이날 결과가 나와요");
+    if(it.k==="audition"&&j.status==="new") parts.push("지원해서 서류가 붙으면 이날 오디션이에요");
   }
   return parts.join(" · ");
 }
@@ -1135,6 +1137,16 @@ function agendaRow(it){
   }else row.append(el("span"));
   return row;
 }
+function looseRow(it){
+  const j=it.job,extra=it.note&&it.note!==KINDS[it.k]&&it.note!=="촬영"?" ("+it.note+")":"";
+  const when=(it.k==="result"?"결과: ":it.k==="shoot"?"촬영: ":KINDS[it.k]+": ")+whenText(it)+extra;
+  let status;
+  if(it.k==="shoot") status=j.status==="cast"?"출연이 정해졌어요. 정확한 날짜는 제작팀이 알려 줘요.":j.status!=="new"?"지원했어요. 뽑히면 정확한 날짜를 알려 줘요.":j.pick==="want"?"하고 싶다고 하셨어요. 지원해서 뽑히면 이때 촬영해요.":"아직 고르지 않은 공고예요. 지원해서 뽑히면 이때 촬영해요.";
+  else if(it.k==="result") status=j.status!=="new"?"지원했어요. 이때쯤 결과가 나와요.":"지원하면 이때쯤 결과가 나와요.";
+  else status=j.status!=="new"?"지원한 공고예요.":"아직 지원 전인 공고예요.";
+  return el("button",{type:"button",class:"ag-row",onclick:()=>openJob(j.id)},el("span",{class:"tag kind k-"+it.k,text:KSHORT[it.k]}),
+    el("span",{class:"ag-main"},el("strong",{text:j.title}),el("span",{class:"loose-when",text:when}),el("span",{text:status})),ic("right","sm"));
+}
 function calView(){
   const t0=today();
   if(!ui.calM){const p=dayParts(t0);ui.calM=p.y+"-"+String(p.m).padStart(2,"0")}
@@ -1194,7 +1206,11 @@ function calView(){
   });
   v.append(sec("다가오는 날짜","오늘부터 날짜순이에요.",ag.childElementCount?ag:empty("다가오는 날짜가 없어요.")));
   const loose=items.filter(it=>isLoose(it)&&dayNum(it.e||it.d)>=t0).sort((a,b)=>dayNum(a.d)-dayNum(b.d));
-  if(loose.length) v.append(sec("날짜가 대략인 일정","공고에 정확한 날짜가 없는 것들이에요.",el("div",{class:"ag-list"},...loose.map(agendaRow))));
+  if(loose.length){
+    const rank=it=>it.job&&it.job.status!=="new"?0:it.job&&it.job.pick==="want"?1:2;
+    loose.sort((a,b)=>rank(a)-rank(b)||dayNum(a.d)-dayNum(b.d));
+    v.append(sec("날짜가 대략만 나온 일정","공고에 '11월 중'처럼 대략만 적혀 있는 것들이에요. 정확한 날짜가 정해지면 달력에 넣어 드려요.",el("div",{class:"ag-list"},...loose.map(looseRow))));
+  }
   if(mode==="manager"&&!readOnly) v.append(sec("일정 넣기","오디션·촬영·미팅이 정해지면 넣어 주세요. 배우 화면 맨 위에도 나와요.",ui.evForm?eventForm():el("button",{class:"btn primary",type:"button",text:"새 일정 넣기",onclick:()=>{ui.evForm=true;render()}})));
   return v;
 }
